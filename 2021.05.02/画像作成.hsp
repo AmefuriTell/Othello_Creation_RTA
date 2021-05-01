@@ -1,0 +1,19 @@
+screen 0, 320, 480
+buffer 1, 40, 40//îwåi
+    color 0, 0, 0 : boxf
+    color 0, 255, 0 : boxf 1, 1, 38, 38
+    bmpsave "îwåi.bmp"
+buffer 2, 40, 40//çï
+    pos 0, 0 : celput 1,,1.0,1.0
+    color 0, 0, 0 : circle 3, 3, 36, 36
+    bmpsave "çï.bmp"
+buffer 3, 40, 40
+    pos 0, 0 : celput 1,,1.0,1.0
+    color 255, 255, 255 : circle 3, 3, 36, 36
+    bmpsave "îí.bmp"
+buffer 4, 40, 40
+    pos 0, 0 : celput 1,,1.0,1.0
+    color 255, 255, 0 : circle 3, 3, 36, 36
+    bmpsave "åÛï‚.bmp"
+gsel 0
+end

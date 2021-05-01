@@ -1,0 +1,175 @@
+#include "hsp3dish.as"
+screen 0, 320, 480
+celload "背景.bmp", 1
+celload "黒.bmp", 2
+celload "白.bmp", 3
+celload "候補.bmp", 4
+gsel 0
+
+#module _ribarsi_
+    #deffunc init
+        dim grid, 8, 8
+        grid(3, 3) = -1
+        grid(4, 4) = -1
+        grid(4, 3) = 1
+        grid(3, 4) = 1
+
+        di =  1,  0, -1,  0,  1,  1, -1, -1
+        dj =  0,  1,  0, -1,  1, -1,  1, -1
+
+        dim can, 8, 8, 8
+        dim can_num, 8, 8
+        can_num_all = 0
+
+        turn = 1
+        black = 2
+        white = 2
+    return
+    #deffunc check
+        dim can, 8, 8, 8
+        dim can_num, 8, 8
+        can_num_all = 0
+
+        repeat 8
+            i = cnt
+            repeat 8
+                j = cnt
+                if(grid(i, j) == 2):grid(i, j) = 0
+            loop
+        loop
+        
+        repeat 8
+            i = cnt
+            repeat 8
+                j = cnt
+                if(grid(i, j) == 0){
+                    repeat 8
+                        k = cnt
+                        nexti = i + di(k)
+                        nextj = j + dj(k)
+                        if(0 > nexti || nexti > 7 || 0 > nextj || nextj > 7):break
+                        if(grid(nexti, nextj) == -turn){
+                            l = 2
+                            repeat 8
+                                nexti = i + di(k) * l
+                                nextj = j + dj(k) * l
+                                if(0 > nexti || nexti > 7 || 0 > nextj || nextj > 7):break
+                                if(grid(nexti, nextj) == turn){
+                                    grid(i, j) = 2
+                                    can_num(i, j) += l - 1
+                                    can(i, j, k) += l - 1
+                                    can_num_all += 1
+                                    break
+                                }
+                                if(grid(nexti, nextj) == 0 || grid(nexti, nextj) == 2):break
+                                l++
+                            loop
+                        }
+                    loop
+                }
+            loop
+        loop
+    return
+    #deffunc print_board
+        redraw 0
+            color 255, 255, 255 : boxf
+            repeat 8
+                i = cnt
+                repeat 8
+                    j = cnt
+                    pos i * 40, j * 40
+                    if(grid(i, j) == 0){
+                        celput 1,, 1.0, 1.0
+                    }else:if(grid(i, j) == 1){
+                        celput 2,, 1.0, 1.0
+                    }else:if(grid(i, j) == -1){
+                        celput 3,,1.0, 1.0
+                    }else:if(grid(i, j) == 2){
+                        celput 4,,1.0,1.0
+                    }
+                loop
+            loop
+            color 0, 0, 0
+            pos 0, 40 * 8 : font "", 24 : mes "黒 : " + black
+            pos 160 , 320 : font "", 24 : mes "白 : " + white
+
+            pos 0, 400 : font "", 64
+            if(turn == 1){
+                mes "黒の番です"
+            }else:if(turn == -1){
+                mes "白の番です"
+            }else{
+                if(black > white){
+                    mes "黒の勝利！"
+                }else:if(black < white){
+                    mes "白の勝利！"
+                }else{
+                    mes "引き分け！"
+                }
+            }
+        redraw 1
+    return
+    #deffunc put
+        repeat
+            stick key
+            if(key == 256){
+                ini = mousex / 40
+                inj = mousey / 40
+                if(0 > ini || ini > 7 || 0 > inj || inj > 7):continue
+                if(grid(ini, inj) == 2){
+                    repeat 8
+                        i = cnt
+                        repeat can(ini, inj, i)
+                            j = cnt + 1
+                            grid(ini + di(i) * j, inj + dj(i) * j) = turn
+                        loop
+                        grid(ini, inj) = turn
+                    loop
+                    if(turn == 1){
+                        black += can_num(ini, inj) + 1
+                        white -= can_num(ini, inj) 
+                    }else{
+                        black -= can_num(ini, inj)
+                        white += can_num(ini, inj) + 1
+                    }
+                    break
+                }
+            }
+            await 5
+        loop
+    return
+    #deffunc game
+        init
+        repeat
+            check
+            if(can_num_all == 0){
+                turn *= -1
+                check
+                if(can_num_all == 0){
+                    break
+                }else{
+                    print_board
+                    put
+                    turn *= -1
+                }
+            }else{
+                print_board
+                put
+                turn *= -1
+            }
+        loop
+        turn = 0
+        print_board
+    return
+#global
+
+repeat
+    //メイン
+    game
+    repeat
+        stick key
+        if(key != 0):break
+        await
+    loop
+    await
+loop
